@@ -3,7 +3,7 @@ services:
     name: eval-ai
     runtime: node
     buildCommand: npm install
-    startCommand: node backend/server.js
+    startCommand: node server.js
     plan: free
     envVars:
       - key: NODE_ENV

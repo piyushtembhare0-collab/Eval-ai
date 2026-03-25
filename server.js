@@ -520,11 +520,18 @@ app.get('/api/health', (req, res) => {
 
 // ─── Serve frontend (index.html) for all non-API routes ────────────────────────
 app.get('/', (req, res) => {
-  const frontendPath = path.join(__dirname, '..', 'frontend', 'index.html');
-  if (fs.existsSync(frontendPath)) {
+  // Check multiple possible locations for index.html
+  const possiblePaths = [
+    path.join(__dirname, '..', 'frontend', 'index.html'), // local: backend/../frontend/
+    path.join(__dirname, 'frontend', 'index.html'),        // deployed: same dir/frontend/
+    path.join(__dirname, 'index.html'),                    // deployed: same dir
+    path.join(__dirname, '..', 'index.html'),              // deployed: one level up
+  ];
+  const frontendPath = possiblePaths.find(p => fs.existsSync(p));
+  if (frontendPath) {
     res.sendFile(frontendPath);
   } else {
-    res.send('<h2>Eval AI API is running. Open index.html to use the app.</h2>');
+    res.send('<h2>Eval AI is running. Please make sure index.html is in the project.</h2>');
   }
 });
 
