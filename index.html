@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eval AI — AI Exam Evaluator by Piyush</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f0e17;
+    --ink-muted: #5c5b6b;
+    --ink-subtle: #a8a7b8;
+    --surface: #fafaf8;
+    --surface-2: #f2f1ed;
+    --surface-3: #e8e7e0;
+    --accent: #4338ca;
+    --accent-light: #eef2ff;
+    --accent-hover: #3730a3;
+    --success: #059669;
+    --success-bg: #ecfdf5;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+    --warning: #d97706;
+    --warning-bg: #fffbeb;
+    --border: rgba(15,14,23,0.10);
+    --border-strong: rgba(15,14,23,0.18);
+    --shadow-sm: 0 1px 3px rgba(15,14,23,0.06), 0 1px 2px rgba(15,14,23,0.04);
+    --shadow-md: 0 4px 12px rgba(15,14,23,0.08), 0 2px 4px rgba(15,14,23,0.04);
+    --shadow-lg: 0 16px 48px rgba(15,14,23,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 16px;
+    --font-display: 'DM Serif Display', serif;
+    --font-body: 'DM Sans', sans-serif;
+    --transition: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ── */
+  .app-shell {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(8px);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--ink);
+  }
+
+  .logo-mark {
+    width: 34px;
+    height: 34px;
+    background: var(--ink);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-mark svg { color: white; }
+
+  .logo-text {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    letter-spacing: -0.01em;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    background: var(--accent-light);
+    color: var(--accent);
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ── Main Content ── */
+  main {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+    width: 100%;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.75rem;
+    color: var(--ink);
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero p {
+    font-size: 1.05rem;
+    color: var(--ink-muted);
+    font-weight: 300;
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ── Steps indicator ── */
+  .steps-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 2rem;
+  }
+
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--ink-subtle);
+    transition: color var(--transition);
+  }
+
+  .step-item.active { color: var(--accent); }
+  .step-item.done { color: var(--success); }
+
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    transition: background var(--transition), border-color var(--transition);
+  }
+
+  .step-item.active .step-num {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .step-item.done .step-num {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+  }
+
+  .step-connector {
+    width: 36px;
+    height: 1.5px;
+    background: var(--border-strong);
+    margin: 0 4px;
+  }
+
+  /* ── Card ── */
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+  }
+
+  .card:hover { box-shadow: var(--shadow-md); }
+
+  .card-header {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .icon-purple { background: #ede9fe; }
+  .icon-blue { background: #dbeafe; }
+  .icon-amber { background: #fef3c7; }
+  .icon-green { background: #d1fae5; }
+
+  .card-header-text { flex: 1; }
+
+  .card-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+
+  .card-subtitle {
+    font-size: 0.78rem;
+    color: var(--ink-subtle);
+    margin-top: 1px;
+  }
+
+  .optional-badge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    background: var(--surface-2);
+    color: var(--ink-muted);
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .card-body { padding: 1.25rem 1.5rem; }
+
+  /* ── Curriculum Selector ── */
+  .curriculum-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 200px; }
+  .field-label { font-size: 0.8rem; font-weight: 500; color: var(--ink-muted); }
+
+  select, input[type="text"] {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    padding: 9px 12px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--ink);
+    width: 100%;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    appearance: none;
+    cursor: pointer;
+  }
+
+  select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235c5b6b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+
+  select:focus, input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(67, 56, 202, 0.1);
+  }
+
+  /* ── Drop Zone ── */
+  .drop-zone {
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--surface);
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-light);
+  }
+
+  .drop-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .drop-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .drop-text { font-size: 0.9rem; color: var(--ink-muted); }
+  .drop-text strong { color: var(--accent); }
+  .drop-hint { font-size: 0.75rem; color: var(--ink-subtle); margin-top: 4px; }
+
+  /* ── File Preview ── */
+  .file-list { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 6px; }
+
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .file-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  .file-info { flex: 1; min-width: 0; }
+  .file-name { font-size: 0.83rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-size { font-size: 0.72rem; color: var(--ink-subtle); }
+
+  .file-remove {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: var(--border-strong);
+    color: var(--ink-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: background var(--transition), color var(--transition);
+    flex-shrink: 0;
+  }
+
+  .file-remove:hover { background: var(--danger-bg); color: var(--danger); }
+
+  /* ── Evaluate Button ── */
+  .eval-section { margin-top: 1.75rem; }
+
+  .btn-evaluate {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: var(--ink);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all var(--transition);
+    letter-spacing: -0.01em;
+  }
+
+  .btn-evaluate:hover:not(:disabled) {
+    background: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(67, 56, 202, 0.3);
+  }
+
+  .btn-evaluate:active:not(:disabled) { transform: translateY(0); }
+
+  .btn-evaluate:disabled {
+    background: var(--surface-3);
+    color: var(--ink-subtle);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .btn-evaluate svg { flex-shrink: 0; }
+
+  /* ── Progress ── */
+  .progress-wrap {
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .progress-wrap.visible { display: block; }
+
+  .progress-bar-outer {
+    height: 4px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .progress-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #818cf8);
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.5s ease;
+    animation: shimmer 2s infinite;
+    background-size: 200% 100%;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  .progress-steps {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--ink-subtle);
+  }
+
+  .progress-step { transition: color var(--transition); }
+  .progress-step.active { color: var(--accent); font-weight: 600; }
+  .progress-step.done { color: var(--success); }
+
+  /* ── Error Banner ── */
+  .error-banner {
+    background: var(--danger-bg);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: var(--danger);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  .error-banner.visible { display: flex; }
+
+  /* ── Results Section ── */
+  .results-section { margin-top: 2rem; display: none; }
+  .results-section.visible { display: block; animation: fadeUp 0.4s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .results-title {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+  }
+
+  .results-actions { display: flex; gap: 8px; }
+
+  .btn-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.83rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .btn-action:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+  .btn-action.primary { background: var(--ink); color: white; border-color: var(--ink); }
+  .btn-action.primary:hover { background: var(--accent); border-color: var(--accent); }
+
+  /* ── Score Card ── */
+  .score-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .score-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .score-label { font-size: 0.72rem; font-weight: 600; color: var(--ink-subtle); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .score-value { font-family: var(--font-display); font-size: 2rem; line-height: 1; color: var(--ink); }
+  .score-value.accent { color: var(--accent); }
+  .score-value.success { color: var(--success); }
+  .score-sub { font-size: 0.75rem; color: var(--ink-muted); margin-top: 3px; }
+
+  /* ── Results Card ── */
+  .result-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .result-card-header {
+    padding: 0.9rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ink-muted);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .result-card-body { padding: 1.25rem; }
+
+  /* ── Area Lists ── */
+  .area-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .area-item {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid;
+  }
+
+  .area-item.success { background: var(--success-bg); border-color: var(--success); }
+  .area-item.danger { background: var(--danger-bg); border-color: var(--danger); }
+
+  .area-topic { font-size: 0.88rem; font-weight: 600; margin-bottom: 3px; }
+  .area-item.success .area-topic { color: var(--success); }
+  .area-item.danger .area-topic { color: var(--danger); }
+  .area-detail { font-size: 0.83rem; color: var(--ink-muted); line-height: 1.5; }
+
+  /* ── Question Analysis ── */
+  .q-item {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .q-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    background: var(--surface);
+    transition: background var(--transition);
+  }
+
+  .q-header:hover { background: var(--surface-2); }
+
+  .q-number {
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .q-marks {
+    font-size: 0.8rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .q-marks.full { background: var(--success-bg); color: var(--success); }
+  .q-marks.partial { background: var(--warning-bg); color: var(--warning); }
+  .q-marks.zero { background: var(--danger-bg); color: var(--danger); }
+
+  .q-chevron { transition: transform var(--transition); color: var(--ink-subtle); font-size: 0.8rem; }
+  .q-chevron.open { transform: rotate(180deg); }
+
+  .q-body {
+    display: none;
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .q-body.open { display: block; }
+
+  .q-section { margin-bottom: 10px; }
+  .q-section-label { font-size: 0.75rem; font-weight: 600; color: var(--ink-subtle); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .q-section-text { color: var(--ink-muted); }
+
+  .error-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-radius: 4px;
+    margin: 2px 3px 2px 0;
+  }
+
+  .feedback-box {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 10px 12px;
+    font-size: 0.83rem;
+    color: var(--ink);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  /* ── Action Plan ── */
+  .action-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .action-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+
+  .action-num {
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    padding: 12px 20px;
+    background: var(--ink);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    color: var(--ink-subtle);
+    background: white;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 600px) {
+    main { padding: 1.5rem 1rem 3rem; }
+    .hero h1 { font-size: 1.8rem; }
+    .steps-bar { display: none; }
+    .curriculum-row { flex-direction: column; }
+    .results-header { flex-direction: column; align-items: flex-start; }
+    .btn-action { flex: 1; justify-content: center; }
+    header { padding: 0 1rem; }
+    .header-badge { display: none; }
+  }
+
+  /* ── API Key Card ── */
+  .apikey-card {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fafafa 100%);
+    border: 1.5px solid rgba(67,56,202,0.2);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .apikey-icon {
+    width: 40px; height: 40px;
+    background: var(--accent);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.1rem;
+  }
+  .apikey-info { flex: 1; min-width: 180px; }
+  .apikey-info strong { font-size: 0.9rem; font-weight: 600; display: block; margin-bottom: 2px; }
+  .apikey-info small { font-size: 0.76rem; color: var(--ink-muted); }
+  .apikey-info small a { color: var(--accent); text-decoration: none; }
+  .apikey-info small a:hover { text-decoration: underline; }
+  .apikey-input-wrap { display: flex; gap: 8px; flex: 2; min-width: 240px; }
+  .apikey-input {
+    flex: 1;
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    padding: 9px 14px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--ink);
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    letter-spacing: 0.04em;
+  }
+  .apikey-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(67,56,202,0.1); }
+  .apikey-input.valid { border-color: var(--success); }
+  .apikey-input.invalid { border-color: var(--danger); }
+  .apikey-toggle {
+    padding: 9px 12px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: white;
+    color: var(--ink-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all var(--transition);
+    white-space: nowrap;
+  }
+  .apikey-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .apikey-status {
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .apikey-status.ok { background: var(--success-bg); color: var(--success); }
+  .apikey-status.missing { background: var(--warning-bg); color: var(--warning); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<!-- ── Header ── -->
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+      </svg>
+    </div>
+    <span class="logo-text">Eval<span> AI</span></span>
+  </div>
+  <span class="header-badge">Created by Piyush</span>
+</header>
+
+<!-- ── Main ── -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Grade smarter,<br><em>not harder.</em></h1>
+    <p>Upload your exam files and let Claude evaluate your student's submission with curriculum-aligned feedback in seconds.</p>
+  </div>
+
+
+  <!-- ── API Key Card ── -->
+  <div class="apikey-card" id="apikeyCard">
+    <div class="apikey-icon">🔑</div>
+    <div class="apikey-info">
+      <strong>Your Anthropic API Key</strong>
+      <small>Stored in your browser only. Get one free at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></small>
+    </div>
+    <div class="apikey-input-wrap">
+      <input
+        class="apikey-input"
+        id="apiKeyInput"
+        type="password"
+        placeholder="sk-ant-api03-..."
+        oninput="handleApiKeyInput()"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button class="apikey-toggle" onclick="toggleApiKeyVisibility()" id="apiKeyToggleBtn">Show</button>
+      <span class="apikey-status missing" id="apiKeyStatus">Required</span>
+    </div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps-bar" id="stepsBar">
+    <div class="step-item active" data-step="1">
+      <div class="step-num">1</div>
+      <span>Setup</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="2">
+      <div class="step-num">2</div>
+      <span>Upload</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="3">
+      <div class="step-num">3</div>
+      <span>Evaluate</span>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step-item" data-step="4">
+      <div class="step-num">4</div>
+      <span>Report</span>
+    </div>
+  </div>
+
+  <!-- ── Card 1: Curriculum ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon icon-purple">📚</div>
+      <div class="card-header-text">
+        <div class="card-title">Curriculum</div>
+        <div class="card-subtitle">Select the exam board and level</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="curriculum-row">
+        <div class="field-group">
+          <label class="field-label">Exam board & curriculum</label>
+          <select id="curriculumSelect" onchange="handleCurriculumChange()">
+            <optgroup label="IB Diploma — Mathematics">
+              <option value="IB DP Mathematics AA SL">IB DP Mathematics AA SL</option>
+              <option value="IB DP Mathematics AA HL">IB DP Mathematics AA HL</option>
+              <option value="IB DP Mathematics AI SL">IB DP Mathematics AI SL</option>
+              <option value="IB DP Mathematics AI HL">IB DP Mathematics AI HL</option>
+            </optgroup>
+            <optgroup label="IB Diploma — Sciences">
+              <option value="IB DP Physics SL">IB DP Physics SL</option>
+              <option value="IB DP Physics HL">IB DP Physics HL</option>
+              <option value="IB DP Chemistry SL">IB DP Chemistry SL</option>
+              <option value="IB DP Chemistry HL">IB DP Chemistry HL</option>
+              <option value="IB DP Biology SL">IB DP Biology SL</option>
+              <option value="IB DP Biology HL">IB DP Biology HL</option>
+            </optgroup>
+            <optgroup label="IB Diploma — Humanities">
+              <option value="IB DP Economics SL">IB DP Economics SL</option>
+              <option value="IB DP Economics HL">IB DP Economics HL</option>
+              <option value="IB DP History SL">IB DP History SL</option>
+              <option value="IB DP History HL">IB DP History HL</option>
+              <option value="IB DP English A: Literature SL">IB DP English A: Literature SL</option>
+              <option value="IB DP English A: Literature HL">IB DP English A: Literature HL</option>
+            </optgroup>
+            <optgroup label="IGCSE">
+              <option value="IGCSE Mathematics (Extended)">IGCSE Mathematics (Extended)</option>
+              <option value="IGCSE Additional Mathematics">IGCSE Additional Mathematics</option>
+              <option value="IGCSE Physics">IGCSE Physics</option>
+              <option value="IGCSE Chemistry">IGCSE Chemistry</option>
+              <option value="IGCSE Biology">IGCSE Biology</option>
+              <option value="IGCSE English Language">IGCSE English Language</option>
+              <option value="IGCSE Economics">IGCSE Economics</option>
+            </optgroup>
+            <optgroup label="Cambridge A-Level">
+              <option value="A-Level Mathematics">A-Level Mathematics</option>
+              <option value="A-Level Further Mathematics">A-Level Further Mathematics</option>
+              <option value="A-Level Physics">A-Level Physics</option>
+              <option value="A-Level Chemistry">A-Level Chemistry</option>
+              <option value="A-Level Biology">A-Level Biology</option>
+              <option value="A-Level Economics">A-Level Economics</option>
+            </optgroup>
+            <optgroup label="AP">
+              <option value="AP Calculus AB">AP Calculus AB</option>
+              <option value="AP Calculus BC">AP Calculus BC</option>
+              <option value="AP Physics C: Mechanics">AP Physics C: Mechanics</option>
+              <option value="AP Chemistry">AP Chemistry</option>
+            </optgroup>
+            <optgroup label="Other">
+              <option value="custom">Custom / Other...</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field-group" id="customCurriculumWrap" style="display:none;">
+          <label class="field-label">Specify curriculum</label>
+          <input type="text" id="customCurriculum" placeholder="e.g. CBSE Class 12 Mathematics">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Card 2: Question Paper ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon icon-blue">📄</div>
+      <div class="card-header-text">
+        <div class="card-title">Question Paper</div>
+        <div class="card-subtitle">The exam paper given to students</div>
+      </div>
+      <span class="req-indicator" style="font-size:0.72rem;color:var(--danger);font-weight:600;">Required</span>
+    </div>
+    <div class="card-body">
+      <div class="drop-zone" id="dz-questionPaper" ondragover="handleDragOver(event,'questionPaper')" ondragleave="handleDragLeave('questionPaper')" ondrop="handleDrop(event,'questionPaper')">
+        <input type="file" accept=".pdf,.doc,.docx,.odt,.rtf,.txt,image/*,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff,.heic" multiple onchange="handleFiles(this.files,'questionPaper')">
+        <div class="drop-icon">📋</div>
+        <div class="drop-text"><strong>Click to upload</strong> or drag & drop</div>
+        <div class="drop-hint">PDF, Word, ODT, JPG, PNG, GIF, BMP, WEBP, TIFF — up to 20MB each</div>
+      </div>
+      <div class="file-list" id="fl-questionPaper"></div>
+    </div>
+  </div>
+
+  <!-- ── Card 3: Marking Scheme ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon icon-amber">📝</div>
+      <div class="card-header-text">
+        <div class="card-title">Marking Scheme</div>
+        <div class="card-subtitle">Rubric with expected answers and mark allocations</div>
+      </div>
+      <span class="req-indicator" style="font-size:0.72rem;color:var(--danger);font-weight:600;">Required</span>
+    </div>
+    <div class="card-body">
+      <div class="drop-zone" id="dz-markingScheme" ondragover="handleDragOver(event,'markingScheme')" ondragleave="handleDragLeave('markingScheme')" ondrop="handleDrop(event,'markingScheme')">
+        <input type="file" accept=".pdf,.doc,.docx,.odt,.rtf,.txt,image/*,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff,.heic" multiple onchange="handleFiles(this.files,'markingScheme')">
+        <div class="drop-icon">✅</div>
+        <div class="drop-text"><strong>Click to upload</strong> or drag & drop</div>
+        <div class="drop-hint">PDF, Word, ODT, JPG, PNG, GIF, BMP, WEBP, TIFF — up to 20MB each</div>
+      </div>
+      <div class="file-list" id="fl-markingScheme"></div>
+    </div>
+  </div>
+
+  <!-- ── Card 4: Student Submission ── -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon icon-green">✏️</div>
+      <div class="card-header-text">
+        <div class="card-title">Student Submission</div>
+        <div class="card-subtitle">Scanned answer sheets or PDF response</div>
+      </div>
+      <span class="req-indicator" style="font-size:0.72rem;color:var(--danger);font-weight:600;">Required</span>
+    </div>
+    <div class="card-body">
+      <div class="drop-zone" id="dz-studentSubmission" ondragover="handleDragOver(event,'studentSubmission')" ondragleave="handleDragLeave('studentSubmission')" ondrop="handleDrop(event,'studentSubmission')">
+        <input type="file" accept=".pdf,.doc,.docx,.odt,.rtf,.txt,image/*,.jpg,.jpeg,.png,.gif,.bmp,.webp,.tiff,.heic" multiple onchange="handleFiles(this.files,'studentSubmission')">
+        <div class="drop-icon">📖</div>
+        <div class="drop-text"><strong>Click to upload</strong> or drag & drop</div>
+        <div class="drop-hint">PDF, Word, images (JPG, PNG, GIF, BMP, WEBP, TIFF, HEIC) — up to 20MB each</div>
+      </div>
+      <div class="file-list" id="fl-studentSubmission"></div>
+    </div>
+  </div>
+
+  <!-- ── Evaluate Button ── -->
+  <div class="eval-section">
+    <button class="btn-evaluate" id="evalBtn" onclick="startEvaluation()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+      </svg>
+      Evaluate Student
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progressBar"></div>
+      </div>
+      <div class="progress-steps">
+        <span class="progress-step" id="ps1">Uploading files</span>
+        <span class="progress-step" id="ps2">Reading content</span>
+        <span class="progress-step" id="ps3">Evaluating</span>
+        <span class="progress-step" id="ps4">Generating report</span>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-banner" id="errorBanner">
+      <span>⚠</span>
+      <span id="errorText">An error occurred. Please try again.</span>
+    </div>
+  </div>
+
+  <!-- ── Results Section ── -->
+  <div class="results-section" id="resultsSection">
+    <div class="results-header">
+      <h2 class="results-title">Evaluation Report</h2>
+      <div class="results-actions">
+        <button class="btn-action" onclick="copyToClipboard()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy text
+        </button>
+        <button class="btn-action primary" onclick="downloadDoc()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download .DOC
+        </button>
+      </div>
+    </div>
+
+    <!-- Score Grid -->
+    <div class="score-grid" id="scoreGrid"></div>
+
+    <!-- Summary -->
+    <div class="result-card" id="summaryCard">
+      <div class="result-card-header">📊 Summary</div>
+      <div class="result-card-body" id="summaryBody"></div>
+    </div>
+
+    <!-- Strong Areas -->
+    <div class="result-card" id="strongCard">
+      <div class="result-card-header">✅ Strong Areas</div>
+      <div class="result-card-body"><div class="area-list" id="strongList"></div></div>
+    </div>
+
+    <!-- Weak Areas -->
+    <div class="result-card" id="weakCard">
+      <div class="result-card-header">⚠️ Areas for Improvement</div>
+      <div class="result-card-body"><div class="area-list" id="weakList"></div></div>
+    </div>
+
+    <!-- Question Analysis -->
+    <div class="result-card" id="qCard">
+      <div class="result-card-header">🔍 Question-wise Analysis</div>
+      <div class="result-card-body" id="qList"></div>
+    </div>
+
+    <!-- Conceptual Feedback -->
+    <div class="result-card" id="conceptCard">
+      <div class="result-card-header">🧠 Conceptual Feedback</div>
+      <div class="result-card-body" id="conceptBody" style="font-size:0.88rem;color:var(--ink-muted);line-height:1.7;"></div>
+    </div>
+
+    <!-- Action Plan -->
+    <div class="result-card" id="actionCard">
+      <div class="result-card-header">🎯 Action Plan</div>
+      <div class="result-card-body"><div class="action-list" id="actionList"></div></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Footer -->
+<footer>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+  Eval AI — Created by Piyush &nbsp;•&nbsp; Powered by Claude
+</footer>
+</div>
+
+<script>
+
+  // ── API Key helpers ──────────────────────────────────────────────────────
+  function handleApiKeyInput() {
+    const input = document.getElementById('apiKeyInput');
+    const status = document.getElementById('apiKeyStatus');
+    const val = input.value.trim();
+    if (val.startsWith('sk-ant-') && val.length > 20) {
+      input.className = 'apikey-input valid';
+      status.textContent = '✓ Ready';
+      status.className = 'apikey-status ok';
+      // Save to sessionStorage (cleared when browser tab closes)
+      sessionStorage.setItem('evalai_key', val);
+    } else if (val.length > 0) {
+      input.className = 'apikey-input invalid';
+      status.textContent = 'Invalid';
+      status.className = 'apikey-status missing';
+    } else {
+      input.className = 'apikey-input';
+      status.textContent = 'Required';
+      status.className = 'apikey-status missing';
+    }
+    updateButton();
+  }
+
+  function toggleApiKeyVisibility() {
+    const input = document.getElementById('apiKeyInput');
+    const btn = document.getElementById('apiKeyToggleBtn');
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = 'Hide';
+    } else {
+      input.type = 'password';
+      btn.textContent = 'Show';
+    }
+  }
+
+  // Restore key from session if available
+  (function restoreKey() {
+    const saved = sessionStorage.getItem('evalai_key');
+    if (saved) {
+      document.getElementById('apiKeyInput').value = saved;
+      handleApiKeyInput();
+    }
+  })();
+
+  // ─── State ────────────────────────────────────────────────────────────────────
+  const state = {
+    files: { curriculum: [], questionPaper: [], markingScheme: [], studentSubmission: [] },
+    evaluation: null,
+    docBase64: null,
+    docFilename: null
+  };
+
+  // Auto-detect API URL: same origin when deployed, localhost:3001 when developing
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : window.location.origin;
+
+  // ─── Curriculum selector ───────────────────────────────────────────────────
+  function handleCurriculumChange() {
+    const sel = document.getElementById('curriculumSelect');
+    const wrap = document.getElementById('customCurriculumWrap');
+    wrap.style.display = sel.value === 'custom' ? 'flex' : 'none';
+  }
+
+  function getCurriculumName() {
+    const sel = document.getElementById('curriculumSelect');
+    if (sel.value === 'custom') {
+      return document.getElementById('customCurriculum').value.trim() || 'Custom Curriculum';
+    }
+    return sel.value;
+  }
+
+  // ─── File Upload Handlers ─────────────────────────────────────────────────
+  function handleDragOver(e, zone) {
+    e.preventDefault();
+    document.getElementById(`dz-${zone}`).classList.add('dragover');
+  }
+
+  function handleDragLeave(zone) {
+    document.getElementById(`dz-${zone}`).classList.remove('dragover');
+  }
+
+  function handleDrop(e, zone) {
+    e.preventDefault();
+    document.getElementById(`dz-${zone}`).classList.remove('dragover');
+    handleFiles(e.dataTransfer.files, zone);
+  }
+
+  function handleFiles(fileList, zone) {
+    const newFiles = Array.from(fileList);
+    state.files[zone] = [...state.files[zone], ...newFiles];
+    renderFileList(zone);
+    updateButton();
+  }
+
+  function removeFile(zone, index) {
+    state.files[zone].splice(index, 1);
+    renderFileList(zone);
+    updateButton();
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+  }
+
+  function fileIcon(name) {
+    if (name.endsWith('.pdf')) return '📄';
+    if (/\.(jpe?g|png|webp|gif|bmp|tiff?|heic)$/i.test(name)) return '🖼️';
+    if (/\.(docx?|odt|rtf)$/i.test(name)) return '📝';
+    if (name.endsWith('.txt')) return '📃';
+    return '📁';
+  }
+
+  function renderFileList(zone) {
+    const container = document.getElementById(`fl-${zone}`);
+    const files = state.files[zone];
+    container.innerHTML = files.map((f, i) => `
+      <div class="file-item">
+        <span class="file-icon">${fileIcon(f.name)}</span>
+        <div class="file-info">
+          <div class="file-name">${escHtml(f.name)}</div>
+          <div class="file-size">${formatSize(f.size)}</div>
+        </div>
+        <button class="file-remove" onclick="removeFile('${zone}', ${i})" title="Remove">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function escHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ─── Button state ─────────────────────────────────────────────────────────
+  function updateButton() {
+    const btn = document.getElementById('evalBtn');
+    const apiKeyVal = (document.getElementById('apiKeyInput')?.value || '').trim();
+    const keyOk = apiKeyVal.startsWith('sk-ant-') && apiKeyVal.length > 20;
+    const ready = keyOk &&
+                  state.files.questionPaper.length > 0 &&
+                  state.files.markingScheme.length > 0 &&
+                  state.files.studentSubmission.length > 0;
+    btn.disabled = !ready;
+    const apiKeyVal2 = (document.getElementById('apiKeyInput')?.value || '').trim();
+    const keyOk2 = apiKeyVal2.startsWith('sk-ant-') && apiKeyVal2.length > 20;
+    if (!keyOk2) {
+      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> Enter your API key first`;
+    } else {
+      btn.innerHTML = ready
+        ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/></svg> Evaluate Student`
+        : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Upload required files to evaluate`;
+    }
+  }
+
+  // ─── Progress helpers ─────────────────────────────────────────────────────
+  function showProgress(pct, step) {
+    document.getElementById('progressWrap').classList.add('visible');
+    document.getElementById('progressBar').style.width = pct + '%';
+    ['ps1','ps2','ps3','ps4'].forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.className = 'progress-step' + (i < step ? ' done' : i === step ? ' active' : '');
+    });
+  }
+
+  function hideProgress() {
+    document.getElementById('progressWrap').classList.remove('visible');
+    document.getElementById('progressBar').style.width = '0%';
+  }
+
+  function showError(msg) {
+    const banner = document.getElementById('errorBanner');
+    document.getElementById('errorText').textContent = msg;
+    banner.classList.add('visible');
+    setTimeout(() => banner.classList.remove('visible'), 6000);
+  }
+
+  // ─── Toast ────────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ─── Steps bar ────────────────────────────────────────────────────────────
+  function setStep(n) {
+    document.querySelectorAll('.step-item').forEach(el => {
+      const s = parseInt(el.dataset.step);
+      el.className = 'step-item' + (s < n ? ' done' : s === n ? ' active' : '');
+    });
+  }
+
+  // ─── Main Evaluation ──────────────────────────────────────────────────────
+  async function startEvaluation() {
+    document.getElementById('errorBanner').classList.remove('visible');
+    document.getElementById('resultsSection').classList.remove('visible');
+
+    const btn = document.getElementById('evalBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.22-8.56"/></svg> Evaluating...`;
+
+    setStep(3);
+    showProgress(15, 0);
+
+    try {
+      const apiKey = document.getElementById('apiKeyInput').value.trim();
+      if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+        showError('Please enter a valid Anthropic API key (starts with sk-ant-)');
+        btn.disabled = false;
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/></svg> Evaluate Student`;
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('curriculumName', getCurriculumName());
+      formData.append('apiKey', apiKey);
+
+      state.files.curriculum.forEach(f => formData.append('curriculum', f));
+      state.files.questionPaper.forEach(f => formData.append('questionPaper', f));
+      state.files.markingScheme.forEach(f => formData.append('markingScheme', f));
+      state.files.studentSubmission.forEach(f => formData.append('studentSubmission', f));
+
+      showProgress(30, 0);
+      await delay(400);
+      showProgress(50, 1);
+
+      const response = await fetch(`${API_BASE}/api/evaluate`, {
+        method: 'POST',
+        body: formData
+      });
+
+      showProgress(75, 2);
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Evaluation failed. Please try again.');
+      }
+
+      showProgress(95, 3);
+      await delay(400);
+
+      state.evaluation = data.evaluation;
+      state.docBase64 = data.docFile;
+      state.docFilename = data.filename;
+
+      hideProgress();
+      setStep(4);
+      renderResults(data.evaluation);
+
+      showToast('✓ Evaluation complete!');
+
+    } catch (err) {
+      hideProgress();
+      setStep(2);
+      showError(err.message || 'Connection error. Is the backend server running?');
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4V8z"/></svg> Evaluate Again`;
+    }
+  }
+
+  // ─── Render Results ────────────────────────────────────────────────────────
+  function renderResults(ev) {
+    // Score grid
+    const pctColor = ev.percentage >= 70 ? 'success' : ev.percentage >= 50 ? 'accent' : '';
+    document.getElementById('scoreGrid').innerHTML = `
+      <div class="score-card">
+        <div class="score-label">Marks</div>
+        <div class="score-value accent">${ev.totalMarksAwarded}<span style="font-size:1.1rem;color:var(--ink-subtle)">/${ev.totalMarksAvailable}</span></div>
+        <div class="score-sub">Total score</div>
+      </div>
+      <div class="score-card">
+        <div class="score-label">Percentage</div>
+        <div class="score-value ${pctColor}">${ev.percentage}%</div>
+        <div class="score-sub">Achievement</div>
+      </div>
+      <div class="score-card">
+        <div class="score-label">Grade</div>
+        <div class="score-value accent">${ev.grade || '—'}</div>
+        <div class="score-sub">Awarded</div>
+      </div>
+      <div class="score-card">
+        <div class="score-label">Questions</div>
+        <div class="score-value">${ev.questionAnalysis ? ev.questionAnalysis.length : '—'}</div>
+        <div class="score-sub">Analysed</div>
+      </div>
+    `;
+
+    // Summary
+    document.getElementById('summaryBody').innerHTML =
+      `<p style="font-size:0.9rem;color:var(--ink-muted);line-height:1.7;">${escHtml(ev.summary || '')}</p>`;
+
+    // Strong areas
+    document.getElementById('strongList').innerHTML = (ev.strongAreas || []).map(a => `
+      <div class="area-item success">
+        <div class="area-topic">✓ ${escHtml(a.topic)}</div>
+        <div class="area-detail">${escHtml(a.detail)}</div>
+      </div>
+    `).join('') || '<p style="color:var(--ink-subtle);font-size:0.85rem;">No specific strong areas identified.</p>';
+
+    // Weak areas
+    document.getElementById('weakList').innerHTML = (ev.weakAreas || []).map(a => `
+      <div class="area-item danger">
+        <div class="area-topic">✗ ${escHtml(a.topic)}</div>
+        <div class="area-detail">${escHtml(a.detail)}</div>
+      </div>
+    `).join('') || '<p style="color:var(--ink-subtle);font-size:0.85rem;">No specific weak areas identified.</p>';
+
+    // Question analysis
+    document.getElementById('qList').innerHTML = (ev.questionAnalysis || []).map((q, i) => {
+      const full = q.marksAwarded === q.marksAvailable;
+      const zero = q.marksAwarded === 0;
+      const cls = full ? 'full' : zero ? 'zero' : 'partial';
+      const errors = (q.errors || []).map(e => `<span class="error-tag">${escHtml(e)}</span>`).join('');
+      return `
+        <div class="q-item">
+          <div class="q-header" onclick="toggleQ(${i})">
+            <div class="q-number">
+              <span>Question ${escHtml(q.questionNumber)}</span>
+              <span class="q-marks ${cls}">${q.marksAwarded}/${q.marksAvailable} marks</span>
+            </div>
+            <span class="q-chevron" id="chev-${i}">▼</span>
+          </div>
+          <div class="q-body" id="qb-${i}">
+            <div class="q-section">
+              <div class="q-section-label">Expected answer</div>
+              <div class="q-section-text">${escHtml(q.expectedAnswer || '')}</div>
+            </div>
+            <div class="q-section">
+              <div class="q-section-label">Student answer</div>
+              <div class="q-section-text">${escHtml(q.studentAnswer || '')}</div>
+            </div>
+            ${errors ? `<div class="q-section"><div class="q-section-label">Errors identified</div><div>${errors}</div></div>` : ''}
+            <div class="feedback-box">💡 ${escHtml(q.feedback || '')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Conceptual feedback
+    document.getElementById('conceptBody').textContent = ev.conceptualFeedback || '';
+
+    // Action plan
+    document.getElementById('actionList').innerHTML = (ev.actionPlan || []).map((step, i) => `
+      <div class="action-item">
+        <div class="action-num">${i + 1}</div>
+        <div>${escHtml(step)}</div>
+      </div>
+    `).join('');
+
+    document.getElementById('resultsSection').classList.add('visible');
+    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function toggleQ(i) {
+    const body = document.getElementById(`qb-${i}`);
+    const chev = document.getElementById(`chev-${i}`);
+    const open = body.classList.toggle('open');
+    chev.classList.toggle('open', open);
+  }
+
+  // ─── Download DOC ─────────────────────────────────────────────────────────
+  function downloadDoc() {
+    if (!state.docBase64) { showToast('No report available yet.'); return; }
+    const bin = atob(state.docBase64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = state.docFilename || 'EvalAI_Report.docx';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✓ Report downloaded!');
+  }
+
+  // ─── Copy to clipboard ────────────────────────────────────────────────────
+  function copyToClipboard() {
+    if (!state.evaluation) { showToast('No evaluation to copy.'); return; }
+    const ev = state.evaluation;
+    let text = `STUDENT PERFORMANCE REPORT\n`;
+    text += `Curriculum: ${ev.curriculum}\n`;
+    text += `Score: ${ev.totalMarksAwarded}/${ev.totalMarksAvailable} (${ev.percentage}%) — Grade: ${ev.grade}\n\n`;
+    text += `SUMMARY\n${ev.summary}\n\n`;
+    text += `STRONG AREAS\n${(ev.strongAreas||[]).map(a=>`• ${a.topic}: ${a.detail}`).join('\n')}\n\n`;
+    text += `AREAS FOR IMPROVEMENT\n${(ev.weakAreas||[]).map(a=>`• ${a.topic}: ${a.detail}`).join('\n')}\n\n`;
+    text += `QUESTION ANALYSIS\n`;
+    (ev.questionAnalysis||[]).forEach(q => {
+      text += `Q${q.questionNumber} (${q.marksAwarded}/${q.marksAvailable}): ${q.feedback}\n`;
+    });
+    text += `\nCONCEPTUAL FEEDBACK\n${ev.conceptualFeedback}\n\n`;
+    text += `ACTION PLAN\n${(ev.actionPlan||[]).map((s,i)=>`${i+1}. ${s}`).join('\n')}`;
+    navigator.clipboard.writeText(text).then(() => showToast('✓ Copied to clipboard!')).catch(() => showToast('Copy failed.'));
+  }
+
+  // ─── Utility ──────────────────────────────────────────────────────────────
+  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // Spinner animation
+  const styleEl = document.createElement('style');
+  styleEl.textContent = '@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }';
+  document.head.appendChild(styleEl);
+
+  // Initial button state
+  updateButton();
+</script>
+</body>
+</html>

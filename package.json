@@ -1,0 +1,18 @@
+{
+  "name": "eval-ai",
+  "version": "1.0.0",
+  "description": "Eval AI — AI-powered exam evaluator by Piyush",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "install-deps": "cd backend && npm install"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.26.0",
+    "cors": "^2.8.5",
+    "docx": "^8.5.0",
+    "express": "^4.19.2",
+    "mammoth": "^1.7.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
